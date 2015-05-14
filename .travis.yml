@@ -18,5 +18,5 @@ before_install:
   - grunt build && cd ..
 
 script:
-  - mvn test
+  - mvn test -P mysql
   - cd $UI_DIR && grunt test

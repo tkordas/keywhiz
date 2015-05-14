@@ -25,6 +25,7 @@ import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.db.ManagedDataSource;
 import io.dropwizard.java8.auth.Authenticator;
 import io.dropwizard.setup.Environment;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Clock;
 import keywhiz.auth.BouncyCastle;
@@ -46,10 +47,15 @@ import keywhiz.service.daos.SecretContentDAO;
 import keywhiz.service.daos.SecretController;
 import keywhiz.service.daos.SecretDAO;
 import keywhiz.service.daos.SecretSeriesDAO;
+import keywhiz.utility.ReadOnlyTransactionProvider;
 import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
+import org.jooq.impl.DefaultConfiguration;
+import org.jooq.impl.DefaultConnectionProvider;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.jooq.tools.jdbc.JDBCUtils.dialect;
 
 public class ServiceModule extends AbstractModule {
   private final Environment environment;
@@ -125,7 +131,13 @@ public class ServiceModule extends AbstractModule {
   @Provides @Singleton
   @Readonly DSLContext readonlyJooqContext(@Readonly ManagedDataSource dataSource)
       throws SQLException {
-    return DSL.using(dataSource.getConnection());
+
+    DefaultConfiguration config = new DefaultConfiguration();
+    Connection conn = dataSource.getConnection();
+    config.set(conn);
+    config.set(new ReadOnlyTransactionProvider(new DefaultConnectionProvider(conn)));
+    config.set(dialect(conn));
+    return DSL.using(config);
   }
 
   // DAOs
