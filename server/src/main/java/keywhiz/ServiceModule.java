@@ -97,7 +97,7 @@ public class ServiceModule extends AbstractModule {
   @Provides @Singleton ManagedDataSource dataSource(Environment environment,
       KeywhizConfig config) {
     DataSourceFactory dataSourceFactory = config.getDataSourceFactory();
-    ManagedDataSource dataSource = dataSourceFactory.build(environment.metrics(), "postgres-writable");
+    ManagedDataSource dataSource = dataSourceFactory.build(environment.metrics(), "db-writable");
     environment.lifecycle().manage(dataSource);
 
     return dataSource;
@@ -106,7 +106,7 @@ public class ServiceModule extends AbstractModule {
   @Provides @Singleton @Readonly ManagedDataSource readonlyDataSource(Environment environment,
       KeywhizConfig config) {
     DataSourceFactory dataSourceFactory = config.getReadonlyDataSourceFactory();
-    ManagedDataSource dataSource = dataSourceFactory.build(environment.metrics(), "postgres-readonly");
+    ManagedDataSource dataSource = dataSourceFactory.build(environment.metrics(), "db-readonly");
     environment.lifecycle().manage(dataSource);
 
     return dataSource;
