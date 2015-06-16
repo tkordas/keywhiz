@@ -110,6 +110,12 @@ public class AclDAOTest {
     assertThat(accessGrantsTableSize()).isEqualTo(before + 1);
   }
 
+  @Test public void allowsAccessByName() {
+    int before = accessGrantsTableSize();
+    aclDAO.findAndAllowAccess(secret2.getName(), group1.getName());
+    assertThat(accessGrantsTableSize()).isEqualTo(before + 1);
+  }
+
   @Test public void allowsAccessOnlyOnce() {
     int before = accessGrantsTableSize();
     aclDAO.allowAccess(jooqContext.configuration(), secret2.getId(), group1.getId());
@@ -125,6 +131,17 @@ public class AclDAOTest {
     assertThat(accessGrantsTableSize()).isEqualTo(before);
 
     aclDAO.revokeAccess(jooqContext.configuration(), secret2.getId(), group1.getId());
+    assertThat(accessGrantsTableSize()).isEqualTo(before - 1);
+  }
+
+  @Test public void revokesAccessByName() {
+    aclDAO.allowAccess(jooqContext.configuration(), secret2.getId(), group1.getId());
+    int before = accessGrantsTableSize();
+
+    aclDAO.findAndRevokeAccess(secret2.getName(), group2.getName());
+    assertThat(accessGrantsTableSize()).isEqualTo(before);
+
+    aclDAO.findAndRevokeAccess(secret2.getName(), group1.getName());
     assertThat(accessGrantsTableSize()).isEqualTo(before - 1);
   }
 

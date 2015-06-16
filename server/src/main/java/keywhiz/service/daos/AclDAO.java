@@ -102,6 +102,29 @@ public class AclDAO {
     });
   }
 
+  public void findAndAllowAccess(String secretName, String groupName) {
+    dslContext.transaction(configuration -> {
+      GroupDAO groupDAO = groupDAOFactory.using(configuration);
+      SecretSeriesDAO secretSeriesDAO = secretSeriesDAOFactory.using(configuration);
+
+      Optional<Group> group = groupDAO.getGroup(groupName);
+      if (!group.isPresent()) {
+        logger.info("Failure to allow access groupName {}, secretName {}: groupId not found.", groupName,
+            secretName);
+        throw new IllegalStateException(format("GroupId %s doesn't exist.", groupName));
+      }
+
+      Optional<SecretSeries> secret = secretSeriesDAO.getSecretSeriesByName(secretName);
+      if (!secret.isPresent()) {
+        logger.info("Failure to allow access groupId {}, secretId {}: secretId not found.", groupName,
+            secretName);
+        throw new IllegalStateException(format("SecretId %d doesn't exist.", secretName));
+      }
+
+      allowAccess(configuration, secret.get().id(), group.get().getId());
+    });
+  }
+
   public void findAndRevokeAccess(long secretId, long groupId) {
     dslContext.transaction(configuration -> {
       GroupDAO groupDAO = groupDAOFactory.using(configuration);
@@ -122,6 +145,29 @@ public class AclDAO {
       }
 
       revokeAccess(configuration, secretId, groupId);
+    });
+  }
+
+  public void findAndRevokeAccess(String secretName, String groupName) {
+    dslContext.transaction(configuration -> {
+      GroupDAO groupDAO = groupDAOFactory.using(configuration);
+      SecretSeriesDAO secretSeriesDAO = secretSeriesDAOFactory.using(configuration);
+
+      Optional<Group> group = groupDAO.getGroup(groupName);
+      if (!group.isPresent()) {
+        logger.info("Failure to revoke access groupId {}, secretId {}: groupId not found.", groupName,
+            secretName);
+        throw new IllegalStateException(format("GroupId %s doesn't exist.", groupName));
+      }
+
+      Optional<SecretSeries> secret = secretSeriesDAO.getSecretSeriesByName(secretName);
+      if (!secret.isPresent()) {
+        logger.info("Failure to revoke access groupId {}, secretId {}: secretId not found.",
+            groupName, secretName);
+        throw new IllegalStateException(format("SecretId %s doesn't exist.", secretName));
+      }
+
+      revokeAccess(configuration, secret.get().id(), group.get().getId());
     });
   }
 
